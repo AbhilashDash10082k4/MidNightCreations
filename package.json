@@ -1,5 +1,5 @@
 {
-  "name": "MidNightSolns",
+  "name": "MidNightCreation",
   "private": true,
   "scripts": {
     "build": "turbo run build",
