@@ -140,6 +140,13 @@ create table personalization_fields (
   is_required  boolean not null default false
 );
 
+create table product_bundle_items (
+  bundle_product_id uuid not null references products(id) on delete cascade,
+  item_product_id   uuid not null references products(id) on delete cascade,
+  quantity          int not null default 1,
+  primary key (bundle_product_id, item_product_id)
+);
+
 -- =========================================================
 -- 3. MULTI-TENANT FUNDRAISER / TEAM / SCHOOL STORES
 -- =========================================================

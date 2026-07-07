@@ -8,8 +8,6 @@
 1. Guest browsing (no account required to browse or start a quote).
 2. Account registration via email/password, Google, Apple, and Facebook login.
 3. Email verification and password reset flow.
-4. Magic-link ("passwordless") login option.
-5. Biometric login on mobile (Face ID / fingerprint) after first sign-in.
 6. Unified customer profile: name, email, phone, birthday (for birthday offers), saved sizes, saved addresses, saved payment methods (via secure vault, no raw card storage).
 7. Multiple saved shipping/billing addresses with a default address.
 8. Order history with reorder ("buy again") on any past order.

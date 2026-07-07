@@ -13,6 +13,7 @@ it's a spec-driven development loop any capable coding agent can run inside.
 > **An agent is only as reliable as the tests, specs, and checklists you make it run against.**
 
 We never ask an agent to "build the ecommerce platform." We give it:
+
 1. A **spec** (small, unambiguous, one vertical slice).
 2. **Acceptance criteria** it can mechanically check (tests, lint, typecheck, a curl script).
 3. A **definition of done** checklist.
@@ -28,7 +29,7 @@ mcreations/
 ├── CLAUDE.md                     # symlink or copy of AGENTS.md (Claude Code reads this)
 ├── docs/
 │   ├── adr/                      # Architecture Decision Records, one file per decision
-│   │   └── 0001-multi-tenant-rls.md
+│   │   └── 01-multi-tenant-rls.md
 │   ├── prd/                      # Product specs, one per module (source of truth)
 │   │   ├── catalog.md
 │   │   ├── checkout.md
@@ -75,10 +76,12 @@ This file is the single most important artifact. Put it at repo root. Content:
 # AGENTS.md — Read this before touching any code
 
 ## Mission
+
 Build the Midnight Creations USA ecommerce platform per /docs/prd/*.md,
-using: Next.js (web/admin), NestJS (api), PostgreSQL+Prisma (db), Expo (mobile).
+using: Next.js (web/admin), NextJS (api), PostgreSQL+Prisma (db), Expo (mobile).
 
 ## Ground rules
+
 1. Never invent product/business requirements — if a PRD is silent or ambiguous,
    write a question into `tasks/review/BLOCKED-<task-id>.md` and stop that task.
    Do not guess and proceed on anything touching: pricing, payments, tenant
@@ -110,6 +113,7 @@ using: Next.js (web/admin), NestJS (api), PostgreSQL+Prisma (db), Expo (mobile).
     "Agent Report" section (what changed, how it was tested, any follow-ups).
 
 ## Tech constraints (do not deviate without an ADR)
+
 - Web: Next.js App Router, TypeScript strict mode, Tailwind + shadcn/ui.
 - API: NestJS + Fastify adapter, tRPC for internal, REST/OpenAPI for public+mobile.
 - DB: PostgreSQL 16 local via Docker Compose, Prisma ORM, RLS for tenancy.
@@ -120,9 +124,11 @@ using: Next.js (web/admin), NestJS (api), PostgreSQL+Prisma (db), Expo (mobile).
   equivalent first, and noting the addition + reason in the task file.
 
 ## Definition of done (see .agent/checklists/definition-of-done.md)
+
 A task is NOT done until every box in that checklist is checked.
 
 ## Escalation
+
 If you are blocked, uncertain about a business rule, or a test is flaky for
 reasons you can't fix in <30 min, STOP and write to tasks/review/BLOCKED-*.md
 with: what you tried, what you observed, what decision you need. Do not loop
@@ -139,10 +145,12 @@ silently for hours making unverified guesses.
 # TASK-0142: Add cart_item personalization validation
 
 ## Context
+
 Links: /docs/prd/catalog.md#personalization, /docs/api-contracts/cart.yaml
 Depends on: TASK-0110 (product_options schema), TASK-0121 (cart API skeleton)
 
 ## Spec (what "done" means, precisely)
+
 - POST /v1/cart/:id/items validates `personalization` against the product's
   `personalization_fields` (required fields present, max_length respected,
   field_type enforced) before insert.
@@ -152,10 +160,12 @@ Depends on: TASK-0110 (product_options schema), TASK-0121 (cart API skeleton)
   at insert time (server computes price, client never sends price).
 
 ## Out of scope
+
 - Live visual mockup preview (that's TASK-0201).
 - Personalization on order edit after payment (not supported v1).
 
 ## Acceptance criteria (must all be automatable)
+
 - [ ] Unit tests: apps/api/src/cart/*.spec.ts covering valid/invalid/missing/
       over-length/wrong-type personalization inputs (≥6 cases).
 - [ ] Integration test: apps/api/test/cart.e2e-spec.ts hits the real route
@@ -166,6 +176,7 @@ Depends on: TASK-0110 (product_options schema), TASK-0121 (cart API skeleton)
       stop and flag — see AGENTS.md rule 4).
 
 ## Agent Report (fill this in when moving to review/)
+
 - Files changed:
 - Tests added/run and result:
 - Deviations from spec (if any) and why:
@@ -179,9 +190,11 @@ files or declaring victory on vibes.
 ---
 
 ## 5. Agent roles (use as separate agent sessions/subagents, or as explicit
+
 mode-switch prompts within one session)
 
 ### Planner (`.agent/roles/planner.md`)
+
 Input: a PRD file from `/docs/prd/`. Output: a set of `TASK-XXXX.md` files in
 `backlog/`, each independently completable in <1 day, with dependencies noted.
 Rules: no task without acceptance criteria; slice vertically (one thin
@@ -190,13 +203,15 @@ routes"); flag any task that touches payments/PII/tenancy as `risk: high` in
 its frontmatter so it gets mandatory human review.
 
 ### Implementer (`.agent/roles/implementer.md`)
+
 Input: one task file moved to `in-progress/`. Output: code + tests + updated
 task file moved to `review/`. Rules: run `verify.sh` before claiming done;
 never touch files outside the task's stated scope; if the task depends on an
 unfinished task, stop and say so instead of stubbing around it silently.
 
 ### Reviewer (`.agent/roles/reviewer.md`)
-Input: a task in `review/`. Output: either move to `done/` with a short
+
+Input: a task in `review/`. Output: either move to `done/` with a very short
 review note, or move back to `in-progress/` with specific requested changes
 appended under a `## Review Feedback` heading. Checks against
 `.agent/checklists/pr-checklist.md` line by line — does not rubber-stamp.
@@ -204,12 +219,14 @@ Specifically re-runs `verify.sh` itself rather than trusting the implementer's
 report.
 
 ### Tester / QA (`.agent/roles/tester.md`)
+
 Runs after a batch of tasks land on a feature branch. Executes Playwright
 E2E suite + a manual exploratory pass against `docs/prd/*` "Acceptance
 criteria" sections not covered by automated tests (e.g. visual/UX quality).
 Files bug tasks back into `backlog/` using the same TASK template.
 
 ### Security Auditor (`.agent/roles/security-auditor.md`)
+
 Runs on any task touching: auth, payments, file uploads, RLS/tenant
 isolation, or admin routes. Checklist includes: input validation on every
 new route, authz check present (not just authn), RLS policy covers the new
@@ -279,10 +296,10 @@ table was added.
 2. **Human** reviews/reorders backlog once, flags any `risk: high` tasks for
    mandatory pairing rather than full autonomy.
 3. **Implementer agent** picks the next unblocked task (respecting `Depends
-   on:` — a `new-task.sh --next` script can pick this automatically), moves
+on:` — a `new-task.sh --next` script can pick this automatically), moves
    it to `in-progress/`, implements, runs `verify.sh`, moves to `review/`.
 4. **Reviewer agent (fresh context)** re-verifies, either approves → `done/`
-   + opens a PR, or bounces back with specific feedback.
+   - opens a PR, or bounces back with specific feedback.
 5. Human merges PRs in small batches; **Tester agent** runs the E2E suite
    against the merged branch weekly or per-milestone; **Security Auditor**
    runs on every `risk: high` task and before each release tag.
@@ -326,6 +343,7 @@ present in the linked docs — flag gaps instead.
 ---
 
 ## 10. Notes on model/agent choice
+
 - Use a strong reasoning model for **Planner/Reviewer/Security-Auditor**
   roles (accuracy on judging correctness matters more than speed there).
 - Implementer role can use a faster/cheaper model for bulk of tasks, with
