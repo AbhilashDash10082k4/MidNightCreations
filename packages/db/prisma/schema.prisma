@@ -11,6 +11,7 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
 enum UserRole {
   customer
   organizer
@@ -71,7 +72,7 @@ enum ProductionStatus {
 
 model User {
   id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email           String    @unique @db.Citext
+  email           String    @unique
   phone           String?
   passwordHash    String?   @map("password_hash")
   firstName       String?   @map("first_name")
@@ -505,7 +506,7 @@ model Shipment {
 
 model Discount {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code      String    @unique @db.Citext
+  code      String    @unique
   type      String
   value     Decimal   @db.Decimal(10, 2)
   storeId   String?   @map("store_id") @db.Uuid
@@ -524,7 +525,7 @@ model QuoteRequest {
   id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId              String?      @map("user_id") @db.Uuid
   contactName         String       @map("contact_name")
-  contactEmail        String       @map("contact_email") @db.Citext
+  contactEmail        String       @map("contact_email")
   contactPhone        String?      @map("contact_phone")
   organization        String?
   decorationMethod    PrintMethod? @map("decoration_method")
@@ -639,7 +640,7 @@ model CmsPage {
 
 model EmailSubscriber {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email        String   @unique @db.Citext
+  email        String   @unique
   source       String?
   subscribedAt DateTime @default(now()) @map("subscribed_at") @db.Timestamptz
 
