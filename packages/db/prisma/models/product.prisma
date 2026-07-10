@@ -1,0 +1,132 @@
+model Category {
+    id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    parentId    String?  @map("parent_id") @db.Uuid
+    slug        String   @unique
+    name        String
+    description String?
+    sortOrder   Int      @default(0) @map("sort_order")
+    createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+    parent   Category?         @relation("SubCategories", fields: [parentId], references: [id])
+    children Category[]        @relation("SubCategories")
+    products ProductCategory[]
+
+    @@map("categories")
+}
+
+model Product {
+    id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    slug           String   @unique
+    name           String
+    description    String?
+    basePrice      Decimal  @map("base_price") @db.Decimal(10, 2)
+    currency       String   @default("USD")
+    status         String   @default("active")
+    isCustomizable Boolean  @default(false) @map("is_customizable")
+    metadata       Json     @default("{}")
+    createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+    updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+    categories       ProductCategory[]
+    printMethods     ProductPrintMethod[]
+    variants         ProductVariant[]
+    images           ProductImage[]
+    personalizations PersonalizationField[]
+    storeProducts    StoreProduct[]
+    reviews          Review[]
+    wishlists        WishlistItem[]
+    userEvents       UserEvent[]
+    // embedding        ProductEmbedding?
+
+    @@map("products")
+}
+
+model ProductCategory {
+    productId  String @map("product_id") @db.Uuid
+    categoryId String @map("category_id") @db.Uuid
+
+    product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+    category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+    @@id([productId, categoryId])
+    @@map("product_categories")
+}
+
+model ProductPrintMethod {
+    productId   String      @map("product_id") @db.Uuid
+    printMethod PrintMethod @map("print_method")
+
+    product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+    @@id([productId, printMethod])
+    @@map("product_print_methods")
+}
+
+// model ProductOption {
+//   id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   productId String @map("product_id") @db.Uuid
+//   name      String
+//   sortOrder Int    @default(0) @map("sort_order")
+
+//   product Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+//   values  ProductOptionValue[]
+
+//   @@map("product_options")
+// }
+
+// model ProductOptionValue {
+//   id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   optionId  String @map("option_id") @db.Uuid
+//   value     String
+//   sortOrder Int    @default(0) @map("sort_order")
+
+//   option ProductOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+//   @@map("product_option_values")
+// }
+
+model ProductVariant {
+    id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    productId    String   @map("product_id") @db.Uuid
+    sku          String   @unique
+    price        Decimal  @db.Decimal(10, 2)
+    compareAt    Decimal? @map("compare_at") @db.Decimal(10, 2)
+    weightOz     Decimal? @map("weight_oz") @db.Decimal(8, 2)
+    inventoryQty Int      @default(0) @map("inventory_qty")
+    optionValues Json     @default("{}") @map("option_values")
+    imageUrl     String?  @map("image_url")
+    isActive     Boolean  @default(true) @map("is_active")
+    createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+    product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+    cartItems  CartItem[]
+    orderItems OrderItem[]
+
+    @@map("product_variants")
+}
+
+model ProductImage {
+    id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    productId String  @map("product_id") @db.Uuid
+    url       String
+    altText   String? @map("alt_text")
+    sortOrder Int     @default(0) @map("sort_order")
+
+    product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+    @@map("product_images")
+}
+
+model PersonalizationField {
+    id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    productId  String  @map("product_id") @db.Uuid
+    label      String
+    fieldType  String  @map("field_type")
+    maxLength  Int?    @map("max_length")
+    extraPrice Decimal @default(0) @map("extra_price") @db.Decimal(10, 2)
+    isRequired Boolean @default(false) @map("is_required")
+
+    product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+    @@map("personalization_fields")
+}

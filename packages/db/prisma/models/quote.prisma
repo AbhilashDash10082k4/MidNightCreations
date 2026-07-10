@@ -1,0 +1,66 @@
+model QuoteRequest {
+    id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId              String?      @map("user_id") @db.Uuid
+    contactName         String       @map("contact_name")
+    contactEmail        String       @map("contact_email")
+    contactPhone        String?      @map("contact_phone")
+    organization        String?
+    decorationMethod    PrintMethod? @map("decoration_method")
+    garmentType         String?      @map("garment_type")
+    quantity            Int?
+    neededBy            DateTime?    @map("needed_by") @db.Date
+    notes               String?
+    aiExtracted         Json?        @map("ai_extracted")
+    aiPriceEstimateLow  Decimal?     @map("ai_price_estimate_low") @db.Decimal(10, 2)
+    aiPriceEstimateHigh Decimal?     @map("ai_price_estimate_high") @db.Decimal(10, 2)
+    status              QuoteStatus  @default(submitted)
+    assignedStaffId     String?      @map("assigned_staff_id") @db.Uuid
+    createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz
+    updatedAt           DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+    user          User?             @relation("QuoteUser", fields: [userId], references: [id])
+    assignedStaff User?             @relation("QuoteAssignee", fields: [assignedStaffId], references: [id])
+    attachments   QuoteAttachment[]
+    lineItems     QuoteLineItem[]
+    messages      QuoteMessage[]
+
+    @@map("quote_requests")
+}
+
+model QuoteAttachment {
+    id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    quoteId      String   @map("quote_id") @db.Uuid
+    fileUrl      String   @map("file_url")
+    fileName     String?  @map("file_name")
+    scannedClean Boolean? @default(false) @map("scanned_clean")
+    createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+    quote QuoteRequest @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+    @@map("quote_attachments")
+}
+
+model QuoteLineItem {
+    id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    quoteId     String  @map("quote_id") @db.Uuid
+    description String
+    quantity    Int
+    unitPrice   Decimal @map("unit_price") @db.Decimal(10, 2)
+
+    quote QuoteRequest @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+    @@map("quote_line_items")
+}
+
+model QuoteMessage {
+    id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    quoteId   String   @map("quote_id") @db.Uuid
+    senderId  String?  @map("sender_id") @db.Uuid
+    body      String
+    createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+    quote  QuoteRequest @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+    sender User?        @relation(fields: [senderId], references: [id])
+
+    @@map("quote_messages")
+}

@@ -1,0 +1,130 @@
+model User {
+    id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    email           String    @unique
+    phone           String?
+    passwordHash    String?   @map("password_hash")
+    firstName       String?   @map("first_name")
+    lastName        String?   @map("last_name")
+    role            UserRole  @default(customer)
+    emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamptz
+    avatarUrl       String?   @map("avatar_url")
+    createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+    updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+    oauthAccounts    OauthAccount[]
+    addresses        Address[]
+    storesOwned      Store[]              @relation("StoreOwner")
+    storesManaged    Store[]              @relation("StoreManager")
+    storeMemberships StoreMember[]
+    carts            Cart[]
+    orders           Order[]
+    quoteRequests    QuoteRequest[]       @relation("QuoteUser")
+    quotesAssigned   QuoteRequest[]       @relation("QuoteAssignee")
+    quoteMessages    QuoteMessage[]
+    reviews          Review[]
+    wishlists        Wishlist[]
+    userEvents       UserEvent[]
+    // chatConversations ChatConversation[]
+    productionJobs   ProductionJob[]
+    statusChanges    OrderStatusHistory[]
+
+    @@map("users")
+}
+
+model OauthAccount {
+    id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId      String   @map("user_id") @db.Uuid
+    provider    String
+    providerUid String   @map("provider_uid")
+    createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([provider, providerUid])
+    @@map("oauth_accounts")
+}
+
+model Address {
+    id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId     String?  @map("user_id") @db.Uuid
+    label      String?
+    fullName   String   @map("full_name")
+    line1      String
+    line2      String?
+    city       String
+    state      String
+    postalCode String   @map("postal_code")
+    country    String   @default("US")
+    phone      String?
+    isDefault  Boolean  @default(false) @map("is_default")
+    createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+    user           User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    shippingOrders Order[] @relation("ShippingAddress")
+    billingOrders  Order[] @relation("BillingAddress")
+
+    @@map("addresses")
+}
+
+model Review {
+    id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    productId   String   @map("product_id") @db.Uuid
+    userId      String?  @map("user_id") @db.Uuid
+    rating      Int
+    title       String?
+    body        String?
+    aiSummary   String?  @map("ai_summary")
+    isPublished Boolean  @default(false) @map("is_published")
+    createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+    product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+    user    User?   @relation(fields: [userId], references: [id])
+
+    @@map("reviews")
+}
+
+model Wishlist {
+    id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId    String   @map("user_id") @db.Uuid
+    createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+    user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+    items WishlistItem[]
+
+    @@map("wishlists")
+}
+
+model WishlistItem {
+    wishlistId String @map("wishlist_id") @db.Uuid
+    productId  String @map("product_id") @db.Uuid
+
+    wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+    product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+    @@id([wishlistId, productId])
+    @@map("wishlist_items")
+}
+
+model EmailSubscriber {
+    id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    email        String   @unique
+    source       String?
+    subscribedAt DateTime @default(now()) @map("subscribed_at") @db.Timestamptz
+
+    @@map("email_subscribers")
+}
+
+model UserEvent {
+    id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId    String?  @map("user_id") @db.Uuid
+    sessionId String?  @map("session_id")
+    eventType String   @map("event_type")
+    productId String?  @map("product_id") @db.Uuid
+    metadata  Json     @default("{}")
+    createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+    user    User?    @relation(fields: [userId], references: [id])
+    product Product? @relation(fields: [productId], references: [id])
+
+    @@map("user_events")
+}

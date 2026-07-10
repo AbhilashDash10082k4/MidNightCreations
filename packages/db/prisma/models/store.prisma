@@ -1,0 +1,52 @@
+model Store {
+    id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    slug             String      @unique
+    name             String
+    type             StoreType
+    status           StoreStatus @default(pending)
+    ownerUserId      String      @map("owner_user_id") @db.Uuid
+    accountManagerId String?     @map("account_manager_id") @db.Uuid
+    commissionPct    Decimal     @default(10.00) @map("commission_pct") @db.Decimal(5, 2)
+    goalAmount       Decimal?    @map("goal_amount") @db.Decimal(10, 2)
+    theme            Json        @default("{}")
+    startsAt         DateTime?   @map("starts_at") @db.Timestamptz
+    endsAt           DateTime?   @map("ends_at") @db.Timestamptz
+    createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+    owner          User           @relation("StoreOwner", fields: [ownerUserId], references: [id])
+    accountManager User?          @relation("StoreManager", fields: [accountManagerId], references: [id])
+    members        StoreMember[]
+    storeProducts  StoreProduct[]
+    // marketingAssets StoreMarketingAsset[]
+    payouts        StorePayout[]
+    carts          Cart[]
+    orders         Order[]
+    discounts      Discount[]
+
+    @@map("stores")
+}
+
+model StoreMember {
+    storeId String @map("store_id") @db.Uuid
+    userId  String @map("user_id") @db.Uuid
+    role    String @default("organizer")
+
+    store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+    user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([storeId, userId])
+    @@map("store_members")
+}
+
+model StoreProduct {
+    id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    storeId       String   @map("store_id") @db.Uuid
+    productId     String   @map("product_id") @db.Uuid
+    overridePrice Decimal? @map("override_price") @db.Decimal(10, 2)
+    isExclusive   Boolean  @default(false) @map("is_exclusive")
+
+    store   Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+    product Product @relation(fields: [productId], references: [id])
+
+    @@map("store_products")
+}

@@ -1,0 +1,10 @@
+model CmsPage {
+    id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    slug        String   @unique
+    title       String
+    blocks      Json     @default("[]")
+    isPublished Boolean  @default(true) @map("is_published")
+    updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+    @@map("cms_pages")
+}
