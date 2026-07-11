@@ -12,6 +12,7 @@ model User {
     updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
     oauthAccounts    OauthAccount[]
+    savedPaymentMethods SavedPaymentMethod[]
     addresses        Address[]
     storesOwned      Store[]              @relation("StoreOwner")
     storesManaged    Store[]              @relation("StoreManager")

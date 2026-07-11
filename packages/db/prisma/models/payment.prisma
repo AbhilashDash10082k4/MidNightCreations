@@ -29,3 +29,20 @@ model Discount {
 
     @@map("discounts")
 }
+
+model SavedPaymentMethod {
+    id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId                String   @map("user_id") @db.Uuid
+    stripePaymentMethodId String   @map("stripe_payment_method_id")
+    brand                 String
+    last4                 String
+    expMonth              Int      @map("exp_month")
+    expYear               Int      @map("exp_year")
+    isDefault             Boolean  @default(false) @map("is_default")
+    createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("saved_payment_methods")
+}
+

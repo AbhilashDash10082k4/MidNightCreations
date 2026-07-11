@@ -1,20 +1,3 @@
-model StorePayout {
-    id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    storeId     String    @map("store_id") @db.Uuid
-    periodStart DateTime  @map("period_start") @db.Date
-    periodEnd   DateTime  @map("period_end") @db.Date
-    grossSales  Decimal   @default(0) @map("gross_sales") @db.Decimal(12, 2)
-    commission  Decimal   @default(0) @db.Decimal(12, 2)
-    netPayout   Decimal   @default(0) @map("net_payout") @db.Decimal(12, 2)
-    status      String    @default("pending")
-    paidAt      DateTime? @map("paid_at") @db.Timestamptz
-    createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
-
-    store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
-
-    @@map("store_payouts")
-}
-
 model Cart {
     id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     userId    String?  @map("user_id") @db.Uuid
@@ -75,6 +58,7 @@ model Order {
     payments            Payment[]
     shipments           Shipment[]
     giftCardRedemptions GiftCardRedemption[]
+    returnRequests      ReturnRequest[]
 
     @@map("orders")
 }
@@ -161,3 +145,17 @@ model ProductionJob {
 
 //   @@map("product_embeddings")
 // }
+
+model ReturnRequest {
+    id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    orderId   String   @map("order_id") @db.Uuid
+    reason    String
+    photoUrl  String?  @map("photo_url")
+    status    String   @default("pending") // pending, approved, rejected, resolved
+    createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+    order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+    @@map("return_requests")
+}
+

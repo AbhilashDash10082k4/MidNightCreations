@@ -1,102 +1,125 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+import Link from "next/link";
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
+import { ProductRepository } from "@repo/db";
+import { CatalogFilter } from "../features/catalog/components/catalog-filter";
+import { ProductCard } from "../features/catalog/components/product-card";
+import { getCurrentUser } from "../lib/auth";
+import { Header } from "../features/catalog/components/header";
+
+export const dynamic = "force-dynamic";
+
+type HomePageProps = {
+  searchParams?:
+    | Promise<{
+        q?: string;
+        category?: string;
+        sort?: string;
+        minPrice?: string;
+        maxPrice?: string;
+        page?: string;
+      }>
+    | {
+        q?: string;
+        category?: string;
+        sort?: string;
+        minPrice?: string;
+        maxPrice?: string;
+        page?: string;
+      };
 };
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const resolvedSearchParams = await Promise.resolve(searchParams);
+
+  const q = resolvedSearchParams?.q || "";
+  const category = resolvedSearchParams?.category || "";
+  const sort = resolvedSearchParams?.sort || "relevance";
+  const minPrice = resolvedSearchParams?.minPrice
+    ? Number(resolvedSearchParams.minPrice)
+    : undefined;
+  const maxPrice = resolvedSearchParams?.maxPrice
+    ? Number(resolvedSearchParams.maxPrice)
+    : undefined;
+  const page = resolvedSearchParams?.page
+    ? Number(resolvedSearchParams.page)
+    : 1;
+
+  const [productsData, categories, user] = await Promise.all([
+    ProductRepository.getProducts({
+      q,
+      category,
+      sort: sort as any,
+      minPrice,
+      maxPrice,
+      page,
+      limit: 12,
+    }),
+    ProductRepository.getCategories(),
+    getCurrentUser(),
+  ]);
 
   return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
+    <div className="min-h-screen bg-neutral-950 text-neutral-50 selection:bg-indigo-500/30">
+      {/* Header */}
+      <Header user={user} />
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+      {/* Hero section */}
+      <section className="relative overflow-hidden py-12 text-center shrink-0">
+        <div className="absolute inset-0 bg-radial-to-b from-indigo-500/10 via-transparent to-transparent opacity-50" />
+        <div className="relative mx-auto max-w-3xl px-4">
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight mb-3 bg-linear-to-r from-white via-neutral-100 to-neutral-500 bg-clip-text text-transparent">
+            Crafted for Community.
+          </h1>
+          <p className="text-sm text-neutral-400 max-w-2xl mx-auto">
+            Premium custom apparel, engraving, and promotional items made
+            locally in Orange, CT. High quality and personalized options.
+          </p>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+      </section>
+
+      {/* Content area: filter + catalog side by side */}
+      <div className="container mx-auto px-4 pb-12 flex flex-col lg:flex-row gap-6">
+        {/* Filter sidebar — sticky below header */}
+        <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-20 self-start no-scrollbar mb-6 lg:mb-0">
+          <CatalogFilter
+            categories={categories}
+            currentCategory={category}
+            currentSort={sort}
+            currentMinPrice={resolvedSearchParams?.minPrice || ""}
+            currentMaxPrice={resolvedSearchParams?.maxPrice || ""}
+            currentQ={q}
           />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.dev?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.dev →
-        </a>
-      </footer>
+        </aside>
+
+        {/* Product catalog */}
+        <main className="flex-1 min-h-0">
+          {productsData.items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-3xl border border-white/10 bg-white/5 py-12 px-6 text-center backdrop-blur-sm">
+              <h2 className="text-2xl font-bold mb-2">No products found</h2>
+              <p className="text-neutral-400 mb-6">
+                Try adjusting search filter criteria
+              </p>
+              {(q ||
+                category ||
+                minPrice !== undefined ||
+                maxPrice !== undefined) && (
+                <Link
+                  href="/"
+                  className="inline-flex items-center justify-center rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-400 transition hover:cursor-pointer"
+                >
+                  Clear all filters
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+              {productsData.items.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
