@@ -59,7 +59,9 @@ export class ProductRepository {
       orderBy.name = "asc";
     }
 
-    const execute = async (client: Prisma.TransactionClient | typeof prisma) => {
+    const execute = async (
+      client: Prisma.TransactionClient | typeof prisma,
+    ) => {
       const [items, total] = await Promise.all([
         client.product.findMany({
           where,
@@ -83,7 +85,13 @@ export class ProductRepository {
         client.product.count({ where }),
       ]);
 
-      return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+      return {
+        items,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
     };
 
     if (storeId) {
@@ -107,7 +115,9 @@ export class ProductRepository {
       };
     }
 
-    const execute = async (client: Prisma.TransactionClient | typeof prisma) => {
+    const execute = async (
+      client: Prisma.TransactionClient | typeof prisma,
+    ) => {
       return client.product.findFirst({
         where,
         include: {
