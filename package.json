@@ -11,7 +11,8 @@
   "devDependencies": {
     "prettier": "^3.7.4",
     "turbo": "^2.10.3",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "@types/bun": "latest"
   },
   "engines": {
     "node": ">=18"
@@ -25,5 +26,13 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "@types/node": "^26.1.0",
+    "i": "^0.3.7",
+    "npm": "^11.18.0",
+    "zod": "^4.4.3"
+  },
+  "module": "index.ts",
+  "type": "module"
 }
