@@ -11,6 +11,7 @@ RUN turbo prune web --docker
 # ---- Stage 3: install dependencies (cached — only reruns if package.json changes) ----
 FROM base AS installer
 COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/bun.lock ./bun.lock
 RUN bun install
 
 # ---- Stage 4: build the actual app ----
