@@ -17,7 +17,7 @@ RUN bun install
 FROM base AS builder
 COPY --from=installer /app/node_modules ./node_modules
 COPY --from=pruner /app/out/full/ .
-RUN bunx turbo build --filter=web
+RUN bun x turbo build --filter=web
 
 # ---- Stage 5: the final, small image that actually runs in production ----
 FROM base AS runner
