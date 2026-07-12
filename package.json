@@ -33,6 +33,11 @@
     "npm": "^11.18.0",
     "zod": "^4.4.3"
   },
+  "trustedDependencies": [
+    "prisma",
+    "@prisma/client",
+    "@prisma/engines"
+  ],
   "module": "index.ts",
   "type": "module"
 }
